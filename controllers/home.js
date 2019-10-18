@@ -1,55 +1,38 @@
-/*module.exports = {
-    index: function (req, res) {
-        res.send('The home:index controller');
-    }
-};*/
+let mongo = require('mongodb');
+let MClient = mongo.MongoClient;
+let url = 'mongodb://localhost:27017';
+let dbName = 'PhotoUploader';
+let client  = new MClient(url, { useUnifiedTopology: true , useNewUrlParser: true });
 
 var sidebar = require('../helpers/sidebar');
+ImageModel = require('../models').Image;
 
 module.exports = {
     index: function (req, res) {
 
-        var viewModel = {
-            images: [
-                {
-                    uniqueId: 1,
-                    title: 'Sample Image 1',
-                    description: '',
-                    filename: 'sample1.jpg',
-                    views: 0,
-                    likes: 0,
-                    timestamp: Date.now
-                }, {
-                    uniqueId: 2,
-                    title: 'Sample Image 2',
-                    description: '',
-                    filename: 'sample2.jpg',
-                    views: 0,
-                    likes: 0,
-                    timestamp: Date.now
-                }, {
-                    uniqueId: 3,
-                    title: 'Sample Image 3',
-                    description: '',
-                    filename: 'sample3.jpg',
-                    views: 0,
-                    likes: 0,
-                    timestamp: Date.now
-                }, {
-                    uniqueId: 4,
-                    title: 'Sample Image 4',
-                    description: '',
-                    filename: 'sample4.jpg',
-                    views: 0,
-                    likes: 0,
-                    timestamp: Date.now
-                }
-            ]
-        };
+        var viewModel = [];
+        client.connect(async (err, resp) => {
 
-        //res.render('index', viewModel);
-        sidebar(viewModel, function(viewModel) {
-            res.render('index', viewModel);
-            });
+            if(err) 
+            {
+                throw new Error(err);
+            }  
+            
+            let db = client.db(dbName);
+            let coll = db.collection('photos')
+            .find().limit(5).toArray(function(err, result) {
+                if (err) throw err;
+                viewModel = result;
+                console.log(result);
+                sidebar(viewModel, function(viewModel) {
+                    res.render('index', viewModel);
+                    });
+                //db.close();
+              });
+        });      
+        
+
+       
+        
     }
 };
